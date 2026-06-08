@@ -1,0 +1,7 @@
+﻿services:
+  subscription_control_backend:
+    image: subscription_control_backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+

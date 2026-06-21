@@ -1,0 +1,12 @@
+services:
+  subscription_control_backend:
+    image: subscription_control_backend:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+
+  db:
+    ports:
+      - "${DB_PORT:-5432}:5432"

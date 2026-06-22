@@ -8,13 +8,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8"/>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Application\Mapper\" />
-      <Folder Include="Application\Services\" />
-      <Folder Include="Infrastructure\Persistence\" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.9" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.2.3" />
     </ItemGroup>
 
 </Project>

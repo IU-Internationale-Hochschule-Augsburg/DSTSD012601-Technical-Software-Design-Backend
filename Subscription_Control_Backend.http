@@ -1,6 +1,114 @@
-@Subscription_Control_Backend_HostAddress = http://localhost:5279
+@host = http://localhost:5279
+@dockerHost = http://localhost:8080
+@base = {{host}}
+@demoUserId = 11111111-1111-1111-1111-111111111111
+@streamingCategoryId = 22222222-2222-2222-2222-222222222221
+@monthlyBillingCycleId = 33333333-3333-3333-3333-333333333331
+@demoSubscriptionId = 44444444-4444-4444-4444-444444444441
 
-GET {{Subscription_Control_Backend_HostAddress}}/weatherforecast/
+### Health
+GET {{base}}/api/health
 Accept: application/json
 
-###
+### Users - alle laden
+GET {{base}}/api/users
+Accept: application/json
+
+### Users - Demo-User laden
+GET {{base}}/api/users/{{demoUserId}}
+Accept: application/json
+
+### Users - erstellen
+POST {{base}}/api/users
+Content-Type: application/json
+
+{
+  "password": "secret123",
+  "email": "max.mustermann@example.com",
+  "name": "Max Mustermann",
+  "timezone": "Europe/Berlin",
+  "notificationsEnabled": true,
+  "reminderDaysBefore": 7
+}
+
+### Categories - alle laden
+GET {{base}}/api/categories
+Accept: application/json
+
+### Categories - erstellen
+POST {{base}}/api/categories
+Content-Type: application/json
+
+{
+  "name": "Fitness",
+  "icon": "dumbbell"
+}
+
+### BillingCycles - alle laden
+GET {{base}}/api/billingcycles
+Accept: application/json
+
+### BillingCycles - monatlich erstellen
+POST {{base}}/api/billingcycles
+Content-Type: application/json
+
+{
+  "intervalTypeValue": 3,
+  "intervalValue": 1
+}
+
+### Subscriptions - alle laden
+GET {{base}}/api/subscriptions
+Accept: application/json
+
+### Subscriptions - nach User laden
+GET {{base}}/api/subscriptions/by-user/{{demoUserId}}
+Accept: application/json
+
+### Subscriptions - erstellen
+POST {{base}}/api/subscriptions
+Content-Type: application/json
+
+{
+  "userId": "{{demoUserId}}",
+  "name": "Spotify Premium",
+  "provider": "Spotify",
+  "categoryId": "{{streamingCategoryId}}",
+  "cost": 10.99,
+  "currency": "EUR",
+  "billingCycleId": "{{monthlyBillingCycleId}}",
+  "startDate": "2026-03-01T00:00:00",
+  "endDate": null,
+  "cancellationDeadline": "2027-02-20T00:00:00",
+  "autoRenew": true,
+  "notes": "Familienabo prüfen",
+  "isActive": true
+}
+
+### Notifications - alle laden
+GET {{base}}/api/notifications
+Accept: application/json
+
+### Notifications - erstellen
+POST {{base}}/api/notifications
+Content-Type: application/json
+
+{
+  "subscriptionId": "{{demoSubscriptionId}}",
+  "type": 1,
+  "message": "Zahlung wird bald fällig.",
+  "scheduledFor": "2026-04-24T09:00:00"
+}
+
+### NotificationSettings - nach User laden
+GET {{base}}/api/notificationsettings/by-user/{{demoUserId}}
+Accept: application/json
+
+### NotificationSettings - aktualisieren
+PUT {{base}}/api/notificationsettings/by-user/{{demoUserId}}
+Content-Type: application/json
+
+{
+  "enabled": true,
+  "reminderDaysBefore": 14
+}

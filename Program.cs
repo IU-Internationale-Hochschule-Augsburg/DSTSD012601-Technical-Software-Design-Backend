@@ -1,45 +1,84 @@
+using Microsoft.EntityFrameworkCore;
+using Subscription_Control_Backend.Api.OpenApi;
 using Subscription_Control_Backend.Application.Interfaces;
-using Subscription_Control_Backend.Application.Models;
+using Subscription_Control_Backend.Application.Services;
+using Subscription_Control_Backend.Domain.Entities;
 using Subscription_Control_Backend.Domain.Interfaces;
+using Subscription_Control_Backend.Infrastructure.Persistence;
+using Subscription_Control_Backend.Infrastructure.Repositories;
+using Subscription_Control_Backend.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options => options.AddDocumentTransformer<OpenApiDocumentInfoTransformer>());
 builder.Services.AddProblemDetails();
 
-var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
+const string corsPolicy = "_subscriptionControlCors";
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: myAllowSpecificOrigins,
-        policy  =>
-        {
-            policy.WithOrigins(
-                    "http://localhost:8011")
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-        });
+    options.AddPolicy(corsPolicy, policy =>
+    {
+        policy.WithOrigins("http://localhost:8011", "http://localhost:3000", "http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
 });
 
-var connectionString = ""; /*builder.Configuration.GetConnectionString("DefaultConnection")
-                       ?? throw new InvalidOperationException("Connection string 'DefaultConnection' wurde nicht gefunden.");*/
+var connectionString = BuildConnectionString(builder.Configuration);
 
-/*builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(connectionString));*/
+builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddHostedService<DatabaseStartupService>();
 
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IBillingCycleService, BillingCycleService>();
+builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<INotificationSettingsService, NotificationSettingsService>();
 builder.Services.AddScoped<IExampleService, ExampleService>();
+
 var app = builder.Build();
 
 app.UseExceptionHandler();
 
-if (app.Environment.IsDevelopment())
+// OpenAPI-Spezifikation unter /openapi/v1.json und Swagger-UI unter /swagger.
+app.MapOpenApi();
+app.UseSwaggerUI(options =>
 {
-    app.MapOpenApi();
-}
+    options.SwaggerEndpoint("/openapi/v1.json", "Subscription Control API v1");
+    options.DocumentTitle = "Subscription Control API";
+});
 
-app.UseCors(myAllowSpecificOrigins);
+app.UseCors(corsPolicy);
 app.UseHttpsRedirection();
 app.MapControllers();
 
 app.Run();
+
+return;
+
+static string BuildConnectionString(IConfiguration configuration)
+{
+    var host = configuration["DB_HOST"];
+    if (!string.IsNullOrWhiteSpace(host))
+    {
+        return new Npgsql.NpgsqlConnectionStringBuilder
+        {
+            Host = host,
+            Port = int.TryParse(configuration["DB_PORT"], out var port) ? port : 5432,
+            Database = configuration["DB_NAME"],
+            Username = configuration["DB_USER"],
+            Password = configuration["DB_PASSWORD"]
+        }.ConnectionString;
+    }
+
+    return configuration.GetConnectionString("DefaultConnection")
+           ?? throw new InvalidOperationException(
+               "Keine Datenbankverbindung konfiguriert (weder DB_HOST-Umgebungsvariablen noch ConnectionStrings:DefaultConnection).");
+}

@@ -1,4 +1,4 @@
-﻿namespace Subscription_Control_Backend.Domain.Constants;
+﻿namespace Subscription_Control_Backend.Constants;
 
 public class ExampleConstants
 {

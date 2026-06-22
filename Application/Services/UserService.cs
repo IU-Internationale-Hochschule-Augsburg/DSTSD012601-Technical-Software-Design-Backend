@@ -1,4 +1,5 @@
 using Subscription_Control_Backend.Application.Interfaces;
+using Subscription_Control_Backend.Application.Results;
 using Subscription_Control_Backend.Contracts.Requests.Users;
 using Subscription_Control_Backend.Contracts.Responses.Users;
 using Subscription_Control_Backend.Domain.Interfaces;
@@ -35,6 +36,18 @@ public class UserService : IUserService
         await _repository.AddAsync(user, ct);
         var created = await _repository.GetByIdAsync(user.Id, ct) ?? user;
         return UserMapper.ToResponse(created);
+    }
+
+    public async Task<RegistrationResult> RegisterAsync(CreateUserRequest request, CancellationToken ct = default)
+    {
+        var existing = await _repository.GetByEmailAsync(request.Email, ct);
+        if (existing is not null)
+        {
+            return RegistrationResult.EmailAlreadyExists();
+        }
+
+        var created = await CreateAsync(request, ct);
+        return RegistrationResult.Success(created);
     }
 
     public async Task<UserResponse?> UpdateAsync(Guid id, UpdateUserRequest request, CancellationToken ct = default)

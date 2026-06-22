@@ -152,9 +152,9 @@ public class AppDbContext : DbContext
                 Cost = 12.99m,
                 Currency = "EUR",
                 BillingCycleId = monthlyId,
-                StartDate = new DateTime(2026, 1, 1),
+                StartDate = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 EndDate = (DateTime?)null,
-                CancellationDeadline = new DateTime(2026, 12, 24),
+                CancellationDeadline = new DateTime(2026, 12, 24, 0, 0, 0, DateTimeKind.Utc),
                 AutoRenew = true,
                 Notes = "Demo-Abo",
                 IsActive = true
@@ -169,9 +169,9 @@ public class AppDbContext : DbContext
                 Cost = 48.00m,
                 Currency = "EUR",
                 BillingCycleId = yearlyId,
-                StartDate = new DateTime(2026, 2, 1),
+                StartDate = new DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc),
                 EndDate = (DateTime?)null,
-                CancellationDeadline = new DateTime(2027, 1, 20),
+                CancellationDeadline = new DateTime(2027, 1, 20, 0, 0, 0, DateTimeKind.Utc),
                 AutoRenew = true,
                 Notes = "Entwickler-Tools",
                 IsActive = true
@@ -183,7 +183,7 @@ public class AppDbContext : DbContext
             SubscriptionId = netflixId,
             Type = NotificationType.PaymentReminder,
             Message = "Netflix Zahlung steht bald an.",
-            ScheduledFor = new DateTime(2026, 2, 24, 9, 0, 0)
+            ScheduledFor = new DateTime(2026, 2, 24, 9, 0, 0, DateTimeKind.Utc)
         });
     }
 }

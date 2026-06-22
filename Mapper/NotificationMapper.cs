@@ -1,6 +1,7 @@
 using Subscription_Control_Backend.Contracts.Requests.Notifications;
 using Subscription_Control_Backend.Contracts.Responses.Notifications;
 using Subscription_Control_Backend.Domain.Entities;
+using Subscription_Control_Backend.Extensions;
 
 namespace Subscription_Control_Backend.Mapper;
 
@@ -21,7 +22,7 @@ public static class NotificationMapper
         SubscriptionId = request.SubscriptionId,
         Type = request.Type,
         Message = request.Message.Trim(),
-        ScheduledFor = request.ScheduledFor
+        ScheduledFor = request.ScheduledFor.ToUtc()
     };
 
     public static void UpdateEntity(Notification notification, UpdateNotificationRequest request)
@@ -29,6 +30,6 @@ public static class NotificationMapper
         notification.SubscriptionId = request.SubscriptionId;
         notification.Type = request.Type;
         notification.Message = request.Message.Trim();
-        notification.ScheduledFor = request.ScheduledFor;
+        notification.ScheduledFor = request.ScheduledFor.ToUtc();
     }
 }

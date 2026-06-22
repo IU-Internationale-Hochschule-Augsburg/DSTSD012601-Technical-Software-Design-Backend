@@ -1,6 +1,7 @@
 using Subscription_Control_Backend.Contracts.Requests.Subscriptions;
 using Subscription_Control_Backend.Contracts.Responses.Subscriptions;
 using Subscription_Control_Backend.Domain.Entities;
+using Subscription_Control_Backend.Extensions;
 
 namespace Subscription_Control_Backend.Mapper;
 
@@ -39,9 +40,9 @@ public static class SubscriptionMapper
         Cost = request.Cost,
         Currency = request.Currency.Trim().ToUpperInvariant(),
         BillingCycleId = request.BillingCycleId,
-        StartDate = request.StartDate,
-        EndDate = request.EndDate,
-        CancellationDeadline = request.CancellationDeadline,
+        StartDate = request.StartDate.ToUtc(),
+        EndDate = request.EndDate.ToUtc(),
+        CancellationDeadline = request.CancellationDeadline.ToUtc(),
         AutoRenew = request.AutoRenew,
         Notes = request.Notes.Trim(),
         IsActive = request.IsActive
@@ -56,9 +57,9 @@ public static class SubscriptionMapper
         subscription.Cost = request.Cost;
         subscription.Currency = request.Currency.Trim().ToUpperInvariant();
         subscription.BillingCycleId = request.BillingCycleId;
-        subscription.StartDate = request.StartDate;
-        subscription.EndDate = request.EndDate;
-        subscription.CancellationDeadline = request.CancellationDeadline;
+        subscription.StartDate = request.StartDate.ToUtc();
+        subscription.EndDate = request.EndDate.ToUtc();
+        subscription.CancellationDeadline = request.CancellationDeadline.ToUtc();
         subscription.AutoRenew = request.AutoRenew;
         subscription.Notes = request.Notes.Trim();
         subscription.IsActive = request.IsActive;

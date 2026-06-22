@@ -25,10 +25,9 @@ builder.Services.AddCors(options =>
     });
 });
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                       ?? throw new InvalidOperationException("Connection string 'DefaultConnection' wurde nicht gefunden.");
+var connectionString = BuildConnectionString(builder.Configuration);
 
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddHostedService<DatabaseStartupService>();
 
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
@@ -57,3 +56,25 @@ app.UseHttpsRedirection();
 app.MapControllers();
 
 app.Run();
+
+return;
+
+static string BuildConnectionString(IConfiguration configuration)
+{
+    var host = configuration["DB_HOST"];
+    if (!string.IsNullOrWhiteSpace(host))
+    {
+        return new Npgsql.NpgsqlConnectionStringBuilder
+        {
+            Host = host,
+            Port = int.TryParse(configuration["DB_PORT"], out var port) ? port : 5432,
+            Database = configuration["DB_NAME"],
+            Username = configuration["DB_USER"],
+            Password = configuration["DB_PASSWORD"]
+        }.ConnectionString;
+    }
+
+    return configuration.GetConnectionString("DefaultConnection")
+           ?? throw new InvalidOperationException(
+               "Keine Datenbankverbindung konfiguriert (weder DB_HOST-Umgebungsvariablen noch ConnectionStrings:DefaultConnection).");
+}

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Subscription_Control_Backend.Api.OpenApi;
 using Subscription_Control_Backend.Application.Interfaces;
 using Subscription_Control_Backend.Application.Services;
 using Subscription_Control_Backend.Domain.Entities;
@@ -11,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options => options.AddDocumentTransformer<OpenApiDocumentInfoTransformer>());
 builder.Services.AddProblemDetails();
 
 const string corsPolicy = "_subscriptionControlCors";
@@ -46,10 +47,13 @@ var app = builder.Build();
 
 app.UseExceptionHandler();
 
-if (app.Environment.IsDevelopment())
+// OpenAPI-Spezifikation unter /openapi/v1.json und Swagger-UI unter /swagger.
+app.MapOpenApi();
+app.UseSwaggerUI(options =>
 {
-    app.MapOpenApi();
-}
+    options.SwaggerEndpoint("/openapi/v1.json", "Subscription Control API v1");
+    options.DocumentTitle = "Subscription Control API";
+});
 
 app.UseCors(corsPolicy);
 app.UseHttpsRedirection();

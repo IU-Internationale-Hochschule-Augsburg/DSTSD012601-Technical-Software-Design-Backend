@@ -10,4 +10,5 @@ public class User
 
     public NotificationSettings? NotificationSettings { get; set; }
     public List<Subscription> Subscriptions { get; set; } = [];
+    public List<RefreshToken> RefreshTokens { get; set; } = [];
 }

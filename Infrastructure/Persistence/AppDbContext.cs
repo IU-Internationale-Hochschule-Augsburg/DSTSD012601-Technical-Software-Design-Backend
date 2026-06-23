@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<BillingCycle> BillingCycles => Set<BillingCycle>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -37,6 +38,21 @@ public class AppDbContext : DbContext
             entity.HasOne(x => x.NotificationSettings)
                 .WithOne(x => x.User)
                 .HasForeignKey<NotificationSettings>(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.ToTable("RefreshTokens");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.TokenHash).HasMaxLength(128).IsRequired();
+            entity.Property(x => x.CreatedAt).IsRequired();
+            entity.Property(x => x.ExpiresAt).IsRequired();
+            entity.Property(x => x.ReplacedByTokenHash).HasMaxLength(128);
+            entity.HasIndex(x => x.TokenHash).IsUnique();
+            entity.HasOne(x => x.User)
+                .WithMany(x => x.RefreshTokens)
+                .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

@@ -1,6 +1,10 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Subscription_Control_Backend.Api.OpenApi;
 using Subscription_Control_Backend.Application.Interfaces;
+using Subscription_Control_Backend.Application.Options;
 using Subscription_Control_Backend.Application.Services;
 using Subscription_Control_Backend.Domain.Entities;
 using Subscription_Control_Backend.Domain.Interfaces;
@@ -12,8 +16,37 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApi(options => options.AddDocumentTransformer<OpenApiDocumentInfoTransformer>());
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<OpenApiDocumentInfoTransformer>();
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+});
 builder.Services.AddProblemDetails();
+
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
+                 ?? throw new InvalidOperationException("Keine JWT-Konfiguration vorhanden (Abschnitt 'Jwt').");
+if (string.IsNullOrWhiteSpace(jwtOptions.Key))
+{
+    throw new InvalidOperationException("Kein JWT-Signaturschlüssel konfiguriert (Jwt:Key bzw. Jwt__Key).");
+}
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtOptions.Issuer,
+            ValidateAudience = true,
+            ValidAudience = jwtOptions.Audience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromSeconds(30)
+        };
+    });
+builder.Services.AddAuthorization();
 
 const string corsPolicy = "_subscriptionControlCors";
 builder.Services.AddCors(options =>
@@ -34,7 +67,10 @@ builder.Services.AddHostedService<DatabaseStartupService>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
+builder.Services.AddSingleton<ITokenService, JwtTokenService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IBillingCycleService, BillingCycleService>();
@@ -57,6 +93,8 @@ app.UseSwaggerUI(options =>
 
 app.UseCors(corsPolicy);
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Subscription_Control_Backend.Api.Mapper;
@@ -12,6 +13,7 @@ using Subscription_Control_Backend.Contracts.Responses.Users;
 namespace Subscription_Control_Backend.Api.Controllers;
 
 [ApiController]
+[AllowAnonymous]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {

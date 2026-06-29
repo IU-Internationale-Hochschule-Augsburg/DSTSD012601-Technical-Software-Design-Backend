@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Subscription_Control_Backend.Api.OpenApi;
@@ -46,7 +47,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.FromSeconds(30)
         };
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Secure-by-default: Jeder Endpoint verlangt ein gültiges Token,
+    // außer er ist explizit mit [AllowAnonymous] markiert.
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
 
 const string corsPolicy = "_subscriptionControlCors";
 builder.Services.AddCors(options =>
@@ -84,7 +92,8 @@ var app = builder.Build();
 app.UseExceptionHandler();
 
 // OpenAPI-Spezifikation unter /openapi/v1.json und Swagger-UI unter /swagger.
-app.MapOpenApi();
+// AllowAnonymous, damit die FallbackPolicy die Spec nicht hinter Auth sperrt.
+app.MapOpenApi().AllowAnonymous();
 app.UseSwaggerUI(options =>
 {
     options.SwaggerEndpoint("/openapi/v1.json", "Subscription Control API v1");

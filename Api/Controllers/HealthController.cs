@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Subscription_Control_Backend.Api.Mapper;
 using Subscription_Control_Backend.Application.Interfaces;
@@ -6,6 +7,7 @@ using Subscription_Control_Backend.Application.Interfaces;
 namespace Subscription_Control_Backend.Api.Controllers;
 
 [ApiController]
+[AllowAnonymous]
 [Route("api/[controller]")]
 public class HealthController : ControllerBase
 {

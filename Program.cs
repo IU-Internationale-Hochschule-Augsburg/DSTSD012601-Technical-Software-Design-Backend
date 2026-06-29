@@ -49,13 +49,26 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 const string corsPolicy = "_subscriptionControlCors";
+var corsOptions = builder.Configuration.GetSection(CorsOptions.SectionName).Get<CorsOptions>()
+                  ?? new CorsOptions();
+var allowedOrigins = corsOptions.AllowedOrigins
+    .SelectMany(origin => origin.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+    .ToArray();
+if (allowedOrigins.Length == 0)
+{
+    throw new InvalidOperationException(
+        "Keine CORS-Origins konfiguriert (Cors:AllowedOrigins bzw. Cors__AllowedOrigins__0 / CORS_ALLOWED_ORIGINS).");
+}
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(corsPolicy, policy =>
     {
-        policy.WithOrigins("http://localhost:8011", "http://localhost:3000", "http://localhost:5173")
+        policy.
+            WithOrigins(allowedOrigins)
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
